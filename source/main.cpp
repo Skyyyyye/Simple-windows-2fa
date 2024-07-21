@@ -1,11 +1,11 @@
 
 #include <cpprest/oauth1.h>
-#include <string.h>
 #include <tchar.h>
 #include <windows.h>
 #include <windowsx.h>
 
 #include <chrono>
+#include <string>
 
 #include "Log.hpp"
 #include "auth.h"
@@ -14,10 +14,10 @@
 typedef std::basic_string<TCHAR> tstring;
 
 // The main window class name.
-static TCHAR szWindowClass[] = _T("DesktopApp");
+constexpr TCHAR szWindowClass[] = _T("DesktopApp");
 
 // The string that appears in the application's title bar.
-static TCHAR szTitle[] = _T("Authenticator");
+constexpr TCHAR szTitle[] = _T("Authenticator");
 
 // Stored instance handle for use in Win32 API calls such as FindResource
 HINSTANCE hInst;
@@ -48,9 +48,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
     wcex.hIcon = LoadIcon(wcex.hInstance, IDI_APPLICATION);
-    wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-    wcex.lpszMenuName = NULL;
+    wcex.lpszMenuName = nullptr;
     wcex.lpszClassName = szWindowClass;
     wcex.hIconSm = LoadIcon(wcex.hInstance, IDI_APPLICATION);
 
@@ -73,8 +73,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     // NULL: this application does not have a menu bar
     // hInstance: the first parameter from WinMain
     // NULL: not used in this application
-    HWND hWnd = CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
-                               CW_USEDEFAULT, 500, 120, NULL, NULL, hInstance, NULL);
+    const HWND hWnd = CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+                                     CW_USEDEFAULT, 500, 120, nullptr, nullptr, hInstance, nullptr);
     if (!hWnd)
     {
         Log::Error(L"Fatal startup Error", L"Call to CreateWindow failed!", MB_OK | MB_ICONERROR);
@@ -83,8 +83,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     }
     keyWindow =
         CreateWindow(TEXT("Edit"), TEXT("key"), WS_CHILD | WS_VISIBLE | WS_BORDER, 10, 10, 310, 20, hWnd, NULL, NULL, NULL);
-    auto saveButton = CreateWindow(TEXT("Button"), TEXT("Save"), WS_CHILD | WS_VISIBLE | WS_BORDER, 330, 10, 40, 20, hWnd,
-                                   (HMENU)saveButtID, NULL, NULL);
+    CreateWindow(TEXT("Button"), TEXT("Save"), WS_CHILD | WS_VISIBLE | WS_BORDER, 330, 10, 40, 20, hWnd, (HMENU)saveButtID,
+                 NULL, NULL);
 
     std::string authkey = encdec::decrypt(file, key);
     for (int i = 0; i < authkey.size(); i++)
@@ -98,17 +98,17 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     {
         authkey.pop_back();
     }
-    std::wstring temp = std::wstring(authkey.begin(), authkey.end());
+    const std::wstring temp = std::wstring(authkey.begin(), authkey.end());
 
-    LPCWSTR wideString = temp.c_str();
+    const LPCWSTR wideString = temp.c_str();
     SetWindowText(keyWindow, wideString);
 
     auto dur = std::chrono::system_clock::now().time_since_epoch();
     double ttime = static_cast<double>(std::chrono::duration_cast<std::chrono::seconds>(dur).count());
 
     otp = auth::generateToken(authkey, ttime);
-    std::wstring wstri = std::to_wstring(otp);
-    std::string stri = std::to_string(otp);
+    const std::wstring wstri = std::to_wstring(otp);
+    const std::string stri = std::to_string(otp);
     toClipboard(stri);
 
     OTPWindow = CreateWindow(TEXT("Edit"), wstri.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_READONLY, 10, 40, 60, 20, hWnd,
@@ -123,7 +123,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     // Main message loop:
     MSG msg;
 
-    while (GetMessage(&msg, NULL, 0, 0))
+    while (GetMessage(&msg, nullptr, 0, 0))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
@@ -132,33 +132,28 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         dur = std::chrono::system_clock::now().time_since_epoch();
         ttime = static_cast<double>(std::chrono::duration_cast<std::chrono::seconds>(dur).count());
 
-        double value = (ttime / 30.0f);
+        const double value = (ttime / 30.0f);
         double whole = 0;
-        double fractional = std::modf(value, &whole);
+        const double fractional = std::modf(value, &whole);
         otp = auth::generateToken(authkey, ttime);
 
         if (fractional <= 0.1)
         {
-            std::wstring wstr = std::to_wstring(otp);
-            std::string str = std::to_string(otp);
+            const std::wstring wstr = std::to_wstring(otp);
+            const std::string str = std::to_string(otp);
             SetWindowText(OTPWindow, wstr.c_str());
             toClipboard(str);
         }
     }
 
-    return (int)msg.wParam;
+    return static_cast<int>(msg.wParam);
 }
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    PAINTSTRUCT ps;
-    HDC hdc;
     switch (message)
     {
         case WM_PAINT:
         {
-            hdc = BeginPaint(hWnd, &ps);
-
-            EndPaint(hWnd, &ps);
             break;
         }
         case WM_DESTROY:
@@ -172,21 +167,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     std::wstring wString;
                     wString.resize(41);
                     GetWindowText(keyWindow, (LPWSTR)wString.data(), 41);
-                    std::string str(wString.begin(), wString.end());
+                    const std::string str(wString.begin(), wString.end());
                     encdec::encrypt(file, str, key);
                 }
                 break;
                 case copyButtonID:
                 {
-                    std::string str1 = std::to_string(otp);
+                    const std::string str1 = std::to_string(otp);
                     toClipboard(str1);
                 }
                 break;
+                default:
+                    // nothing
+                    break;
             }
             break;
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
-            break;
     }
 
     return 0;
@@ -194,10 +191,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 void toClipboard(const std::string &s)
 {
-    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, s.size() + 1);
+    const HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, s.size() + 1);
     memcpy(GlobalLock(hMem), s.data(), s.size() + 1);
     GlobalUnlock(hMem);
-    OpenClipboard(0);
+    OpenClipboard(nullptr);
     EmptyClipboard();
     SetClipboardData(CF_TEXT, hMem);
     CloseClipboard();
