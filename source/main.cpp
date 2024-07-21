@@ -34,7 +34,7 @@ constexpr int copyButtonID = 11;
 
 HWND keyWindow;
 HWND OTPWindow;
-
+HWND hWnd = nullptr;
 uint32_t otp;
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
@@ -73,8 +73,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     // NULL: this application does not have a menu bar
     // hInstance: the first parameter from WinMain
     // NULL: not used in this application
-    const HWND hWnd = CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
-                                     CW_USEDEFAULT, 500, 120, nullptr, nullptr, hInstance, nullptr);
+    hWnd = CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+                          500, 120, nullptr, nullptr, hInstance, nullptr);
     if (!hWnd)
     {
         Log::Error(L"Fatal startup Error", L"Call to CreateWindow failed!", MB_OK | MB_ICONERROR);
@@ -116,6 +116,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     CreateWindow(TEXT("Button"), TEXT("Copy"), WS_CHILD | WS_VISIBLE | WS_BORDER, 80, 40, 40, 20, hWnd, (HMENU)copyButtonID,
                  NULL, NULL);
+    auto timer = CreateWindow(TEXT("Edit"), TEXT("timer"), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_READONLY, 130, 40, 20, 20,
+                              hWnd, NULL, NULL, NULL);
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
@@ -134,16 +136,18 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
         const double value = (ttime / 30.0f);
         double whole = 0;
-        const double fractional = std::modf(value, &whole);
+        const float fractional = std::modf(value, &whole);
         otp = auth::generateToken(authkey, ttime);
 
-        if (fractional <= 0.1)
+        if (fractional <= 0.01)
         {
             const std::wstring wstr = std::to_wstring(otp);
             const std::string str = std::to_string(otp);
             SetWindowText(OTPWindow, wstr.c_str());
             toClipboard(str);
         }
+        int sec = static_cast<int>(fractional * 30);
+        SetWindowText(timer, std::to_wstring(sec).c_str());
     }
 
     return static_cast<int>(msg.wParam);
@@ -154,6 +158,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_PAINT:
         {
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hWnd, &ps);
+
+            EndPaint(hWnd, &ps);
             break;
         }
         case WM_DESTROY:
@@ -170,8 +178,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     std::string str(wString.begin(), wString.end());
                     encdec::encrypt(file, str, key);
 
-                    auto dur = std::chrono::system_clock::now().time_since_epoch();
-                    auto ttime = static_cast<double>(std::chrono::duration_cast<std::chrono::seconds>(dur).count());
+                    const auto dur = std::chrono::system_clock::now().time_since_epoch();
+                    const auto ttime = static_cast<double>(std::chrono::duration_cast<std::chrono::seconds>(dur).count());
                     while (str.size() > 32)
                     {
                         str.pop_back();
