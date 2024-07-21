@@ -36,7 +36,7 @@ HWND keyWindow;
 HWND OTPWindow;
 HWND hWnd = nullptr;
 uint32_t otp;
-
+std::string authkey = "";
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
     WNDCLASSEX wcex;
@@ -86,7 +86,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     CreateWindow(TEXT("Button"), TEXT("Save"), WS_CHILD | WS_VISIBLE | WS_BORDER, 330, 10, 40, 20, hWnd, (HMENU)saveButtID,
                  NULL, NULL);
 
-    std::string authkey = encdec::decrypt(file, key);
+    authkey = encdec::decrypt(file, key);
     for (int i = 0; i < authkey.size(); i++)
     {
         if (authkey.at(i) == ' ' || authkey.at(i) == '\0')
@@ -177,14 +177,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     GetWindowText(keyWindow, (LPWSTR)wString.data(), 41);
                     std::string str(wString.begin(), wString.end());
                     encdec::encrypt(file, str, key);
-
-                    const auto dur = std::chrono::system_clock::now().time_since_epoch();
-                    const auto ttime = static_cast<double>(std::chrono::duration_cast<std::chrono::seconds>(dur).count());
                     while (str.size() > 32)
                     {
                         str.pop_back();
                     }
-                    otp = auth::generateToken(str, ttime);
+
+                    authkey = str;
+
+                    const auto dur = std::chrono::system_clock::now().time_since_epoch();
+                    const auto ttime = static_cast<double>(std::chrono::duration_cast<std::chrono::seconds>(dur).count());
+
+                    otp = auth::generateToken(authkey, ttime);
                     const std::wstring wstr1 = std::to_wstring(otp);
                     const std::string str1 = std::to_string(otp);
                     SetWindowText(OTPWindow, wstr1.c_str());
