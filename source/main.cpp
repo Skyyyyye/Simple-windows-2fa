@@ -27,7 +27,7 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 void toClipboard(const std::string &s);
 
 constexpr const char file[] = "enc2.txt";
-constexpr int key = 1234;
+constexpr int key = 3102;
 
 constexpr int saveButtID = 10;
 constexpr int copyButtonID = 11;
