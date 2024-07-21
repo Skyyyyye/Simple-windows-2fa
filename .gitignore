@@ -1,0 +1,14 @@
+.vs
+.idea
+*.vcxproj.user
+intermediate/
+executable/
+Build/
+tidy/
+x64/
+**/__pycache__/
+*.aps
+imgui.ini
+/Build
+/Debug
+enc2.txt
