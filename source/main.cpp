@@ -167,8 +167,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     std::wstring wString;
                     wString.resize(41);
                     GetWindowText(keyWindow, (LPWSTR)wString.data(), 41);
-                    const std::string str(wString.begin(), wString.end());
+                    std::string str(wString.begin(), wString.end());
                     encdec::encrypt(file, str, key);
+
+                    auto dur = std::chrono::system_clock::now().time_since_epoch();
+                    auto ttime = static_cast<double>(std::chrono::duration_cast<std::chrono::seconds>(dur).count());
+                    while (str.size() > 32)
+                    {
+                        str.pop_back();
+                    }
+                    otp = auth::generateToken(str, ttime);
+                    const std::wstring wstr1 = std::to_wstring(otp);
+                    const std::string str1 = std::to_string(otp);
+                    SetWindowText(OTPWindow, wstr1.c_str());
+                    toClipboard(str1);
                 }
                 break;
                 case copyButtonID:
