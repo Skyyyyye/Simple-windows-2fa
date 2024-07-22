@@ -9,7 +9,10 @@ void encdec::encrypt(const std::string& file, const std::string& content, int ke
     std::string encryptedString = content;
     for (char& t : encryptedString)
     {
-        t += key;
+        if (t != '\n')
+        {
+            t += key;
+        }
     }
     out.open(file, std::fstream::out | std::ios::binary);
     out << encryptedString;
@@ -28,7 +31,10 @@ std::string encdec::decrypt(const std::string& file, int key)
 
     for (char& t : str)
     {
-        t -= key;
+        if (t != '\n')
+        {
+            t -= key;
+        }
     }
     in.close();
     return str;
