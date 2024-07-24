@@ -27,10 +27,8 @@ Auther::Auther(const HWND& hWnd, std::string& authkey, int buttonId, int copyBut
     const std::wstring temp = std::wstring(authkey.begin(), authkey.end());
     authkeyWindow = CreateWindow(TEXT("Edit"), temp.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER, position.x, position.y, 310, 20,
                                  hWnd, NULL, NULL, NULL);
-    saveWindow = CreateWindow(TEXT("Button"), TEXT("Save"), WS_CHILD | WS_VISIBLE | WS_BORDER, position.x + 320, position.y, 40,
-                              20, hWnd, (HMENU)buttonId, NULL, NULL);
-    deleteWindow = CreateWindow(TEXT("Button"), TEXT("Delete"), WS_CHILD | WS_VISIBLE | WS_BORDER, position.x + 370, position.y,
-                                60, 20, hWnd, (HMENU)deleteButtonID, NULL, NULL);
+    saveWindow = CreateWindow(TEXT("Button"), TEXT("Apply"), WS_CHILD | WS_VISIBLE | WS_BORDER, position.x + 320, position.y,
+                              50, 20, hWnd, (HMENU)buttonId, NULL, NULL);
 
     otp = auth::generateToken(authkey, time);
 
@@ -44,6 +42,9 @@ Auther::Auther(const HWND& hWnd, std::string& authkey, int buttonId, int copyBut
 #ifdef SINGLE
     const std::string str = std::to_string(otp);
     toClipboard(str);
+#elif MULTI
+    deleteWindow = CreateWindow(TEXT("Button"), TEXT("Delete"), WS_CHILD | WS_VISIBLE | WS_BORDER, position.x + 380, position.y,
+                                60, 20, hWnd, (HMENU)deleteButtonID, NULL, NULL);
 #endif
 }
 
@@ -122,8 +123,11 @@ void Auther::Delete()
 {
     DestroyWindow(authkeyWindow);
     DestroyWindow(saveWindow);
-    DestroyWindow(deleteWindow);
     DestroyWindow(OTPWindow);
     DestroyWindow(copyWindow);
     DestroyWindow(timerWindow);
+#ifdef MULTI
+    DestroyWindow(deleteWindow);
+
+#endif
 }
